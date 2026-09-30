@@ -1,0 +1,11 @@
+# Minimal remote config for NetMon. Only the properties declared here are pushed
+# with `supabase config push`; everything else keeps its dashboard value.
+project_id = "netmon"
+
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+[auth.email]
+# The app expects an immediate session after sign-up (no "check your email" step).
+enable_confirmations = false

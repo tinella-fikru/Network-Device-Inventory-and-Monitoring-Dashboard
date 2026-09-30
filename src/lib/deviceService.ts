@@ -45,14 +45,24 @@ export async function ensureSeedDevices(userId: string): Promise<Device[]> {
     traffic_out_mbps: randomTraffic(80, 60),
   }));
 
+  // Upsert on (user_id, name): concurrent first-load calls (e.g. StrictMode) can't duplicate seeds.
   const { data: inserted, error: insertError } = await supabase
     .from('devices')
-    .insert(rows)
+    .upsert(rows, { onConflict: 'user_id,name', ignoreDuplicates: true })
     .select();
 
   if (insertError) {
     console.error('Error seeding devices:', insertError);
     return [];
+  }
+
+  if (!inserted || inserted.length < rows.length) {
+    const { data: devices } = await supabase
+      .from('devices')
+      .select('*')
+      .eq('user_id', userId)
+      .order('name', { ascending: true });
+    return (devices as Device[]) ?? [];
   }
 
   return (inserted as Device[]).sort((a, b) => a.name.localeCompare(b.name));
